@@ -18,13 +18,42 @@ public function __construct(
 )
 ```
 
-AI-generated code. Review and use carefully. [More info on FAQ](https://www.bing.com/new#faq).
-
 O construtor da classe **`Buscador`** utiliza a técnica de *constructor property promotion*, que simplifica a declaração de propriedades diretamente no construtor. Ele recebe as instâncias de **`ClientInterface`** e **`Crawler`**, que são armazenadas como propriedades somente leitura (*readonly*).
 
 ## Métodos
 
 ### **`buscarConteudo(string $url): array`**
+
+```php
+public function buscarConteudo(string $url): array
+{
+    $cursos = [];
+
+    try {
+        $resposta = $this->httpClient->request('GET', $url);
+
+        $html = $resposta->getBody();
+
+        $this->crawler->addHtmlContent($html, 'UTF-8');
+
+        //gerei uma lista de cursos pesquisando pelo seletor CSS
+        $elementosCursos = $this->crawler->filter('span.card-curso__nome');
+
+        //a lista retornou um "DOM", então fiz um foreach para pegar os textContent's (títulos dos cursos)
+        foreach ($elementosCursos as $elemento) {
+            $cursos[] = $elemento->textContent;
+        }
+    } catch (GuzzleException $e) {
+        $cursos[] = "Ocorreu um erro ao buscar o curso: " . $e->getMessage();
+    }
+
+    if (count($cursos) == 0) {
+        $cursos[] = "Nenhum curso encontrado";
+    }
+
+    return $cursos;
+}
+```
 
 Este método realiza a busca de conteúdo na URL fornecida e retorna uma lista de títulos de cursos encontrados.
 
